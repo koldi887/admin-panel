@@ -1,26 +1,37 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useEffect } from 'react';
+import { Login, Registration } from "./components";
+import { useAppDispatch, useAppSelector } from "./hooks/redux";
+import { authSelector, loginSuccess, logOutSuccess } from "./redux/reducers/authSlice";
+
 import './App.css';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    const { isAuth, isLoading } = useAppSelector(authSelector)
+
+    const dispatch = useAppDispatch()
+
+    useEffect(() => {
+        if (localStorage.getItem('token')) {
+            dispatch(loginSuccess())
+        }
+    }, [])
+
+    const logoutHandler = () => {
+        dispatch(logOutSuccess())
+    }
+
+    if (isLoading) return
+    if (!isAuth) return <Login/>
+    return (
+        <div className="App">
+            {/*<Login/>*/}
+            {/*<br/>*/}
+            <h1>SEES</h1>
+            {/*<Registration/>*/}
+            {/*<br/>*/}
+            <button onClick={logoutHandler}>log out</button>
+        </div>
+    );
 }
 
 export default App;
