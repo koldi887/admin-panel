@@ -1,21 +1,10 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../redux-store";
-import { IRegisterForm } from "../../components/Registration";
 import { authApi } from "../../api/auth-api";
-import { ILoginForm } from "../../components/Login";
+import { ILoginForm } from "../../components/LoginForm";
+import { IUser } from "../../interfaces/IUser";
+import { setError } from "./usersSlice";
 
-
-export const registration = createAsyncThunk<void, IRegisterForm>
-("auth/registration",
-    async function (data, { dispatch }) {
-        try {
-            const response = await authApi.register(data)
-
-        } catch (e) {
-            console.log(e)
-        }
-
-    });
 
 export const login = createAsyncThunk<void, ILoginForm>
 ("auth/login",
@@ -23,73 +12,67 @@ export const login = createAsyncThunk<void, ILoginForm>
         try {
             const response = await authApi.login(data)
             localStorage.setItem('token', response.user_jwt)
-            dispatch(getMe(response.user_jwt))
+            dispatch(getMe())
             dispatch(loginSuccess())
-        } catch (e) {
-            console.log(e)
+            dispatch(setAuthError(''))
+        } catch (e: any) {
+            dispatch(setAuthError(e.response.data.error))
         }
     });
 
-export const logout = createAsyncThunk<void, string>
-("auth/login",
-    async function (data, { dispatch }) {
+export const getMe = createAsyncThunk<void, void>
+("auth/getMe",
+    async function (_, { dispatch }) {
         try {
-            await authApi.logout(12)
-            localStorage.removeItem('token')
-            dispatch(logOutSuccess())
-        } catch (e) {
-            console.log(e)
-        }
-    });
-
-export const getMe = createAsyncThunk<void, string>
-("auth/login",
-    async function (token, { dispatch }) {
-        try {
-            const response = await authApi.getMe(token)
-            console.log(response)
-        } catch (e) {
-            console.log(e)
-        }
-    });
-
-export const checkAuth = createAsyncThunk<void, ILoginForm>
-("auth/login",
-    async function (data, { dispatch }) {
-        dispatch(setLoading(true))
-        try {
-            await authApi.logout(12)
-            localStorage.removeItem('token')
-            dispatch(logOutSuccess())
-        } catch (e) {
-            console.log(e)
-        } finally {
-            dispatch(setLoading(false))
+            const response = await authApi.getMe()
+            dispatch(setAuthUser(response))
+            dispatch(setError(''))
+        } catch (e: any) {
+            console.log(e.response.data.error)
         }
     });
 
 let initialState = {
+    initialize: false,
     isAuth: false,
-    isLoading: false
+    authUser: null as null | IUser,
+    error: ''
 };
 
 const authSlice = createSlice({
     name: "auth",
     initialState,
     reducers: {
+        setInitialize: (state) => {
+            if (localStorage.getItem('token')) {
+                state.isAuth = true
+                state.initialize = true
+            } else state.initialize = true
+        },
         loginSuccess: (state) => {
             state.isAuth = true
+            state.error = ''
         },
         logOutSuccess: (state) => {
             localStorage.removeItem('token')
             state.isAuth = false
+            state.error = ''
         },
-        setLoading: (state, action: PayloadAction<boolean>) => {
-            state.isAuth = action.payload
+        setAuthUser: (state, action: PayloadAction<IUser>) => {
+            state.authUser = action.payload
+        },
+        setAuthError: (state, action: PayloadAction<string>) => {
+            state.error = action.payload
         },
     },
 });
 
-export const { loginSuccess, logOutSuccess, setLoading } = authSlice.actions;
+export const {
+    loginSuccess,
+    logOutSuccess,
+    setAuthUser,
+    setInitialize,
+    setAuthError
+} = authSlice.actions;
 export const authSelector = (state: RootState) => state.auth;
 export default authSlice.reducer;

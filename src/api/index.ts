@@ -9,8 +9,10 @@ export const instance = axios.create({
     },
 });
 
-// instance.interceptors.request.use((config) => {
-//     // @ts-ignore
-//     config.headers.Authorization = `Bearer ${localStorage.getItem('token')}`
-//     return config
-// })
+instance.interceptors.request.use(
+    config => {
+        // @ts-ignore
+        config.headers['user-jwt'] = localStorage.getItem('token')
+        return config
+    }
+)

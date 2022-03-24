@@ -1,35 +1,28 @@
 import React, { useEffect } from 'react';
-import { Login, Registration } from "./components";
 import { useAppDispatch, useAppSelector } from "./hooks/redux";
-import { authSelector, loginSuccess, logOutSuccess } from "./redux/reducers/authSlice";
+import { authSelector, setInitialize } from "./redux/reducers/authSlice";
+import { useRoutes } from 'react-router-dom'
+import { PreLoader } from "./components/common/Preloader/Preloader";
+import { Navbar } from "./components/navbar/Navbar";
+import { routesList } from "./routes/routes";
 
 import './App.css';
 
 function App() {
-    const { isAuth, isLoading } = useAppSelector(authSelector)
+    const { initialize } = useAppSelector(authSelector)
+    const routes = useRoutes(routesList);
 
     const dispatch = useAppDispatch()
 
     useEffect(() => {
-        if (localStorage.getItem('token')) {
-            dispatch(loginSuccess())
-        }
+        dispatch(setInitialize())
     }, [])
 
-    const logoutHandler = () => {
-        dispatch(logOutSuccess())
-    }
-
-    if (isLoading) return
-    if (!isAuth) return <Login/>
+    if (!initialize) return <PreLoader/>
     return (
         <div className="App">
-            {/*<Login/>*/}
-            {/*<br/>*/}
-            <h1>SEES</h1>
-            {/*<Registration/>*/}
-            {/*<br/>*/}
-            <button onClick={logoutHandler}>log out</button>
+            <Navbar/>
+            {routes}
         </div>
     );
 }

@@ -6,3 +6,10 @@ export interface IUser {
     name: string
     updated_at: null | string
 }
+
+export interface IRegisterForm {
+    name: string
+    comment: string
+    login: string
+    password: string
+}
