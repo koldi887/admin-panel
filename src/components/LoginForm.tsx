@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from "react-hook-form";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
-import { authSelector, login } from "../redux/reducers/authSlice";
+import { authSelector, login, setAuthError } from "../redux/reducers/authSlice";
 import {
     Box,
     Button,
@@ -18,6 +18,12 @@ export const LoginForm: React.FC = () => {
     const { isAuth, error } = useAppSelector(authSelector)
 
     const dispatch = useAppDispatch()
+
+    useEffect(() => {
+        return () => {
+            if (error) dispatch(setAuthError(''))
+        }
+    }, [ error ])
 
     const onFormSubmit = handleSubmit((data) => {
         dispatch(login(data))

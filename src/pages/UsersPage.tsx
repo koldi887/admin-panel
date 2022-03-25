@@ -4,15 +4,15 @@ import {
     createUser,
     deleteUser,
     editUser,
-    getUsers, setError,
+    getUsers,
     usersSelector
 } from "../redux/reducers/usersSlice";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
-import { UserCard } from "../components/UserCard";
+import { TemplateCard } from "../components/TemplateCard";
 import { Title } from "../components/Title";
 import { PreLoader } from "../components/common/Preloader/Preloader";
 import { IRegisterForm } from "../interfaces/IUser";
-import { CreateItemWindow } from "../components/CreateItemWindow";
+import { UserForm } from "../components/UserForm";
 import { useToggle } from "../hooks/useToggle";
 
 export const UsersPage: React.FC = () => {
@@ -25,12 +25,12 @@ export const UsersPage: React.FC = () => {
         dispatch(getUsers())
     }, [])
 
-    const editUserHandler = (data: IRegisterForm, id: number) => {
-        dispatch(editUser({ id, data }))
-    }
-
     const deleteUserHandler = (id: number) => {
         dispatch(deleteUser(id))
+    }
+
+    const editUserHandler = (data: IRegisterForm, id: number) => {
+        dispatch(editUser({ id, data }))
     }
 
     const userCreatorHandler = async (data: IRegisterForm) => {
@@ -38,34 +38,29 @@ export const UsersPage: React.FC = () => {
         if (response.payload) setToggle()
     }
 
-    const onCreateWindowClose = () => {
-        dispatch(setError(''))
-        setToggle()
-    }
-
     return (
         <div className={'app__flex'}>
             <Title>Users</Title>
-            <Button variant={'contained'} onClick={setToggle}>Create user</Button>
-            {toggle && (
-                <div className='app__flex createForm'>
-                    <CreateItemWindow
-                        title={'Create User'}
-                        callback={userCreatorHandler}
-                        setToggle={onCreateWindowClose}
-                    />
-                </div>
-            )}
+            <Button
+                variant={'contained'}
+                color={toggle ? 'error' : 'primary'}
+                onClick={setToggle}
+            >
+                {toggle ? 'Cancel' : 'Create User'}
+            </Button>
+            {toggle && <UserForm createHandler={userCreatorHandler} title={'Create Station'}/>}
             {isFetching ? <PreLoader/> : (
-                <Grid container spacing={2} style={{ padding: '2rem' }}>
+                <Grid container spacing={2} padding={3}>
                     {usersList.map((user) => {
                         return (
                             <Grid item xs={12} sm={4} md={4} xl={2} key={user.id}>
-                                <UserCard
-                                    item={user}
-                                    editHandler={editUserHandler}
-                                    deleteHandler={deleteUserHandler}
-                                />
+                                <TemplateCard item={user} deleteHandler={deleteUserHandler}>
+                                    <UserForm
+                                        title={'Edit'}
+                                        item={user}
+                                        editHandler={editUserHandler}
+                                    />
+                                </TemplateCard>
                             </Grid>
                         )
                     })}

@@ -10,11 +10,10 @@ import {
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
 import { Button, Grid } from "@mui/material";
 import { PreLoader } from "../components/common/Preloader/Preloader";
-import { UserCard } from "../components/UserCard";
+import { TemplateCard } from "../components/TemplateCard";
 import { IRegisterForm } from "../interfaces/IUser";
 import { useToggle } from "../hooks/useToggle";
-import { CreateItemWindow } from "../components/CreateItemWindow";
-import { setError } from "../redux/reducers/usersSlice";
+import { StationForm } from '../components/StationForm';
 
 export const StationsPage: React.FC = () => {
     const [ toggle, setToggle ] = useToggle(false)
@@ -39,34 +38,30 @@ export const StationsPage: React.FC = () => {
         if (response.payload) setToggle()
     }
 
-    const onCreateWindowClose = () => {
-        dispatch(setError(''))
-        setToggle()
-    }
-
     return (
         <div className={'app__flex'}>
             <Title>Stations</Title>
-            <Button variant={'contained'} onClick={setToggle}>Create station</Button>
-            {toggle && (
-                <div className='app__flex createForm'>
-                    <CreateItemWindow
-                        title={'Create Station'}
-                        callback={stationCreatorHandler}
-                        setToggle={onCreateWindowClose}
-                    />
-                </div>
-            )}
+            <Button
+                variant={'contained'}
+                color={toggle ? 'error' : 'primary'}
+                onClick={setToggle}
+            >
+                {toggle ? 'Cancel' : 'Create Station'}
+            </Button>
+            {toggle &&
+                <StationForm createHandler={stationCreatorHandler} title={'Create Station'}/>}
             {isFetching ? <PreLoader/> : (
                 <Grid container spacing={2} style={{ padding: '2rem' }}>
                     {stationsList.map((station) => {
                         return (
                             <Grid item xs={12} sm={4} md={4} xl={2} key={station.id}>
-                                <UserCard
-                                    item={station}
-                                    editHandler={editStationHandler}
-                                    deleteHandler={deleteStationHandler}
-                                />
+                                <TemplateCard item={station} deleteHandler={deleteStationHandler}>
+                                    <StationForm
+                                        title={'Edit'}
+                                        item={station}
+                                        editHandler={editStationHandler}
+                                    />
+                                </TemplateCard>
                             </Grid>
                         )
                     })}

@@ -1,22 +1,21 @@
 import React from 'react';
 import { Button, Card, CardActions, CardContent, Typography } from "@mui/material";
-import moment from "moment";
-import { IRegisterForm, IUser } from "../interfaces/IUser";
+import { IUser } from "../interfaces/IUser";
 import { useToggle } from "../hooks/useToggle";
 import { IStation } from "../interfaces/IStation";
-import { CreateItemWindow } from "./CreateItemWindow";
+import moment from "moment";
+import { EditFormWrapper } from "./EditFormWrapper";
 
 interface IProps {
     item: IUser | IStation
-    editHandler: (data: IRegisterForm, id: number) => void
     deleteHandler: (id: number) => void
 }
 
-export const UserCard: React.FC<IProps> = (
+export const TemplateCard: React.FC<IProps> = (
     {
         item,
-        editHandler,
         deleteHandler,
+        children
     }) => {
     const [ toggle, setToggle ] = useToggle(false)
 
@@ -24,16 +23,8 @@ export const UserCard: React.FC<IProps> = (
 
     return (
         <Card>
-            {toggle ?
-                <div className='app__flex'>
-                    <CreateItemWindow
-                        title={'Edit'}
-                        // @ts-ignore
-                        callback={editHandler}
-                        setToggle={setToggle}
-                    />
-                </div>
-                : (
+            {toggle ? <EditFormWrapper setToggle={setToggle}> {children} </EditFormWrapper> :
+                (
                     <>
                         <CardContent>
                             <Typography

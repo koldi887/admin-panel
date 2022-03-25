@@ -3,9 +3,10 @@ import { RootState } from "../redux-store";
 import { IRegisterForm } from "../../interfaces/IUser";
 import { stationsApi } from "../../api/stations-api";
 import { IStation } from "../../interfaces/IStation";
+import { IEditError, IStationState } from "../../interfaces/IStationState";
 
 export const getStations = createAsyncThunk<void, void>
-("stations/getUsers",
+("stations/getStations",
     async function (_, { dispatch }) {
         dispatch(setFetching(true))
         try {
@@ -14,7 +15,7 @@ export const getStations = createAsyncThunk<void, void>
         } catch (e) {
             console.log(e)
         } finally {
-            dispatch(dispatch(setFetching(false)))
+            dispatch(setFetching(false))
         }
     });
 
@@ -35,8 +36,9 @@ export const editStation = createAsyncThunk<void, { id: number, data: IRegisterF
         try {
             await stationsApi.updateStation(id, data)
             dispatch(getStations())
-        } catch (e) {
-            console.log(e)
+            dispatch(removeEditError(id))
+        } catch (e: any) {
+            dispatch(setStationEditError({ id: id, error: e.response.data.error }))
         }
     });
 
@@ -46,17 +48,18 @@ export const createStation = createAsyncThunk<boolean | void, IRegisterForm>
         try {
             await stationsApi.createStation(data)
             dispatch(getStations())
+            dispatch(setStationCreateError(''))
             return true
         } catch (e: any) {
-            console.log(e.response.data)
-            dispatch(setError(e.response.data.error))
+            dispatch(setStationCreateError(e.response.data.error))
         }
     });
 
-let initialState = {
+let initialState: IStationState = {
     isFetching: false,
-    stationsList: [] as IStation[],
-    error: ''
+    stationsList: [],
+    editError: [],
+    createError: ''
 };
 
 const stationsSlice = createSlice({
@@ -73,8 +76,14 @@ const stationsSlice = createSlice({
         setFetching: (state, action: PayloadAction<boolean>) => {
             state.isFetching = action.payload
         },
-        setError: (state, action: PayloadAction<string>) => {
-            state.error = action.payload
+        setStationEditError: (state, action: PayloadAction<IEditError>) => {
+            state.editError.push(action.payload)
+        },
+        setStationCreateError: (state, action: PayloadAction<string>) => {
+            state.createError = action.payload
+        },
+        removeEditError: (state, action: PayloadAction<number>) => {
+            state.editError = state.editError.filter(err => err.id !== action.payload)
         },
     },
 });
@@ -83,7 +92,9 @@ export const {
     setStations,
     deleteSuccess,
     setFetching,
-    setError
+    setStationEditError,
+    setStationCreateError,
+    removeEditError
 } = stationsSlice.actions;
 export const stationsSelector = (state: RootState) => state.stations;
 export default stationsSlice.reducer;

@@ -3,7 +3,7 @@ import { RootState } from "../redux-store";
 import { authApi } from "../../api/auth-api";
 import { ILoginForm } from "../../components/LoginForm";
 import { IUser } from "../../interfaces/IUser";
-import { setError } from "./usersSlice";
+import { setUserCreateError } from "./usersSlice";
 
 
 export const login = createAsyncThunk<void, ILoginForm>
@@ -26,7 +26,7 @@ export const getMe = createAsyncThunk<void, void>
         try {
             const response = await authApi.getMe()
             dispatch(setAuthUser(response))
-            dispatch(setError(''))
+            dispatch(setUserCreateError(''))
         } catch (e: any) {
             console.log(e.response.data.error)
         }

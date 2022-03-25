@@ -1,38 +1,50 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from "react-hook-form";
-import {
-    Box,
-    Button,
-    Container,
-    CssBaseline,
-    Grid,
-    TextField,
-    Typography
-} from "@mui/material";
+import { Box, Button, Container, CssBaseline, Grid, TextField, Typography } from "@mui/material";
 import { IRegisterForm, IUser } from "../interfaces/IUser";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ROUTE } from "../routes/routes";
-import { IStation } from "../interfaces/IStation";
-import { createUser, usersSelector } from "../redux/reducers/usersSlice";
+import {
+    createUser,
+    removeEditError,
+    setUserCreateError,
+    usersSelector
+} from "../redux/reducers/usersSlice";
 
 interface IProps {
-    item?: IUser | IStation
+    item?: IUser
     title?: string
-    callback?: (data: IRegisterForm, id?: number) => void
-    formType?: boolean
+    editHandler?: (data: IRegisterForm, id: number) => void
+    createHandler?: (data: IRegisterForm) => void
 }
 
-export const TemplateForm: React.FC<IProps> = ({ item, title, callback }) => {
+export const UserForm: React.FC<IProps> = (
+    {
+        item,
+        title,
+        editHandler,
+        createHandler,
+    }) => {
     const { register, handleSubmit } = useForm<IRegisterForm>();
-    const { error } = useAppSelector(usersSelector)
+    const { createError, editError } = useAppSelector(usersSelector)
 
-    const location = useLocation()
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
 
+    const errorFilter = editError.find(err => err.id === item?.id)
+
+    useEffect(() => {
+        return () => {
+            if (createError && createHandler) dispatch(setUserCreateError(''))
+            if (errorFilter && item) dispatch(removeEditError(item.id))
+            if (!createHandler && createError) dispatch(setUserCreateError(''))
+        }
+    }, [ createError, errorFilter ])
+
     const onFormSubmit = handleSubmit(async (data) => {
-        if (callback) callback(data, item?.id)
+        if (editHandler && item) return editHandler(data, item.id)
+        if (createHandler) return createHandler(data)
         else {
             const response = await dispatch(createUser(data))
             if (response.payload) navigate(ROUTE.LOGIN)
@@ -53,7 +65,11 @@ export const TemplateForm: React.FC<IProps> = ({ item, title, callback }) => {
                 <Typography component="h1" variant="h5">
                     {title ? title : 'Register'}
                 </Typography>
-                {error && <span className='error'>{error}</span>}
+
+                {errorFilter && <span className='error'>{errorFilter?.error}</span>}
+                {createHandler && createError && <span className='error'>{createError}</span>}
+                {!createHandler && createError && <span className='error'>{createError}</span>}
+
                 <Box component="form" noValidate onSubmit={onFormSubmit} sx={{ mt: 3 }}>
                     <Grid container spacing={2}>
                         <Grid item xs={12} sm={6}>
@@ -78,31 +94,27 @@ export const TemplateForm: React.FC<IProps> = ({ item, title, callback }) => {
                                 })}
                             />
                         </Grid>
-                        {location.pathname !== ROUTE.STATIONS && (
-                            <>
-                                <Grid item xs={12}>
-                                    <TextField
-                                        fullWidth
-                                        defaultValue={item?.login}
-                                        type='text'
-                                        label="Login"
-                                        {...register('login', {
-                                            required: true
-                                        })}
-                                    />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <TextField
-                                        fullWidth
-                                        label="Password"
-                                        type="password"
-                                        {...register('password', {
-                                            required: true
-                                        })}
-                                    />
-                                </Grid>
-                            </>
-                        )}
+                        <Grid item xs={12}>
+                            <TextField
+                                fullWidth
+                                defaultValue={item?.login}
+                                type='text'
+                                label="Login"
+                                {...register('login', {
+                                    required: true
+                                })}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                fullWidth
+                                label="Password"
+                                type="password"
+                                {...register('password', {
+                                    required: true
+                                })}
+                            />
+                        </Grid>
                     </Grid>
                     <Button
                         type="submit"

@@ -1,6 +1,6 @@
 import { ProtectedRoutes } from "./ProtectedRoutes";
 import { ErrorPage } from "../pages/ErrorPage";
-import { TemplateForm } from "../components/TemplateForm";
+import { UserForm } from "../components/UserForm";
 import { LoginForm } from "../components/LoginForm";
 import { UsersPage } from "../pages/UsersPage";
 import { StationsPage } from "../pages/StationsPage";
@@ -35,7 +35,7 @@ export const routesList = [
     },
     {
         path: ROUTE.REGISTER,
-        element: <TemplateForm/>,
+        element: <UserForm/>,
     },
     {
         path: ROUTE.LOGIN,
